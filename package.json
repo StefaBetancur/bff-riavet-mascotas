@@ -1,0 +1,33 @@
+{
+  "name": "bff-riavet-mascotas",
+  "version": "1.0.0",
+  "description": "BFF para RiavetMascotasMs API",
+  "author": "",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main"
+  },
+  "dependencies": {
+    "@nestjs/common": "^9.0.0",
+    "@nestjs/core": "^9.0.0",
+    "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/axios": "^2.0.0",
+    "@nestjs/config": "^2.3.0",
+    "axios": "^1.4.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^9.0.0",
+    "@nestjs/schematics": "^9.0.0",
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.16.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -3,11 +3,10 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { firstValueFrom, catchError } from 'rxjs';
-import * as https from 'https';
 
 @Injectable()
-export class MascotasService {
-  private readonly logger = new Logger(MascotasService.name);
+export class AgendamientoService {
+  private readonly logger = new Logger(AgendamientoService.name);
   private readonly apiBaseUrlMascotas: string;
   private readonly apiBaseUrlAgendamiento: string;
   private readonly apiBaseUrlIdentidad: string;
@@ -24,9 +23,6 @@ export class MascotasService {
     this.logger.log(`Conectando a API en: ${this.apiBaseUrlIdentidad}`);
   }
 
-  private readonly httpsAgent = new https.Agent({
-    rejectUnauthorized: false, // Acepta certificados autofirmados SOLO en desarrollo
-  });
   private getApiUrlMascota(endpoint: string): string {
     return `${this.apiBaseUrlMascotas}${endpoint}`;
   }
@@ -41,29 +37,32 @@ export class MascotasService {
 
   // Obtener todas las mascotas
   async findAll(): Promise<any> {
-  try {
-    const response = await this.httpService.axiosRef.get(
-      this.getApiUrlMascota('/mascotas'),
-      { httpsAgent: this.httpsAgent }
-    );
-
-    return response.data;
-
-  } catch (error) {
-    this.logger.error(`Error al obtener mascotas: ${error.message}`);
-    throw new HttpException(
-      error.response?.data || 'Error del servidor',
-      error.response?.status || 500,
-    );
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(this.getApiUrlAgendamiento('/citas')).pipe(
+          catchError((error) => {
+            this.logger.error(`Error al obtener citas: ${error.message}`);
+            throw new HttpException(
+              error.response?.data || 'Error del servidor',
+              error.response?.status || 500,
+            );
+          }),
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Error en findAll: ${error.message}`);
+      throw error;
+    }
   }
-}
-  // Obtener una mascota por ID
+
+  // Obtener una citas por ID
   async findOne(id: string): Promise<any> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(this.getApiUrlMascota(`/mascotas/${id}`)).pipe(
+        this.httpService.get(this.getApiUrlAgendamiento(`/citas/${id}`)).pipe(
           catchError((error) => {
-            this.logger.error(`Error al obtener mascota ${id}: ${error.message}`);
+            this.logger.error(`Error al obtener citas ${id}: ${error.message}`);
             throw new HttpException(
               error.response?.data || 'Error del servidor',
               error.response?.status || 500,
@@ -78,13 +77,13 @@ export class MascotasService {
     }
   }
 
-  // Crear una nueva mascota
-  async create(mascotaData: any): Promise<any> {
+  // Crear una nueva citas
+  async create(citaData: any): Promise<any> {
     try {
       const response = await firstValueFrom(
-        this.httpService.post(this.getApiUrlMascota('/mascotas'), mascotaData).pipe(
+        this.httpService.post(this.getApiUrlAgendamiento('/citas'), citaData).pipe(
           catchError((error) => {
-            this.logger.error(`Error al crear mascota: ${error.message}`);
+            this.logger.error(`Error al crear citas: ${error.message}`);
             throw new HttpException(
               error.response?.data || 'Error del servidor',
               error.response?.status || 500,
@@ -99,13 +98,13 @@ export class MascotasService {
     }
   }
 
-  // Actualizar una mascota
-  async update(id: string, mascotaData: any): Promise<any> {
+  // Actualizar una citas
+  async update(id: string, citaData: any): Promise<any> {
     try {
       const response = await firstValueFrom(
-        this.httpService.put(this.getApiUrlMascota(`/mascotas/${id}`), mascotaData).pipe(
+        this.httpService.put(this.getApiUrlAgendamiento(`/citas/${id}`), citaData).pipe(
           catchError((error) => {
-            this.logger.error(`Error al actualizar mascota ${id}: ${error.message}`);
+            this.logger.error(`Error al actualizar citas ${id}: ${error.message}`);
             throw new HttpException(
               error.response?.data || 'Error del servidor',
               error.response?.status || 500,
@@ -120,13 +119,13 @@ export class MascotasService {
     }
   }
 
-  // Eliminar una mascota
+  // Eliminar una citas
   async remove(id: string): Promise<any> {
     try {
       const response = await firstValueFrom(
-        this.httpService.delete(this.getApiUrlMascota(`/mascotas/${id}`)).pipe(
+        this.httpService.delete(this.getApiUrlAgendamiento(`/citas/${id}`)).pipe(
           catchError((error) => {
-            this.logger.error(`Error al eliminar mascota ${id}: ${error.message}`);
+            this.logger.error(`Error al eliminar citas ${id}: ${error.message}`);
             throw new HttpException(
               error.response?.data || 'Error del servidor',
               error.response?.status || 500,
@@ -143,6 +142,6 @@ export class MascotasService {
 
   // Método para saludar (prueba)
   async getHello(): Promise<string> {
-    return 'BFF para RiavetMascotasMs está funcionando correctamente!';
+    return 'BFF para RiavetAgendamientoMs está funcionando correctamente!';
   }
 }

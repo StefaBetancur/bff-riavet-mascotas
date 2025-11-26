@@ -24,3 +24,8 @@ npm run start:dev
 
 # Probar que funciona
 curl http://localhost:3001/mascotas/health/check
+
+
+
+dotnet dev-certs https --clean
+dotnet dev-certs https --trust

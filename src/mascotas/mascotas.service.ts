@@ -9,19 +9,12 @@ import * as https from 'https';
 export class MascotasService {
   private readonly logger = new Logger(MascotasService.name);
   private readonly apiBaseUrlMascotas: string;
-  private readonly apiBaseUrlAgendamiento: string;
-  private readonly apiBaseUrlIdentidad: string;
-
   constructor(
     private readonly httpService: HttpService,
     private configService: ConfigService,
   ) {
     this.apiBaseUrlMascotas = this.configService.get<string>('API_BASE_URL_MASCOTAS') || 'http://localhost:5169/api';
-    this.apiBaseUrlAgendamiento = this.configService.get<string>('API_BASE_URL_AGENDAMIENTO') || 'http://localhost:5167/api' || 'http://localhost:7000/api';
-    this.apiBaseUrlIdentidad = this.configService.get<string>('API_BASE_URL_IDENTIDAD') || 'http://localhost:5168/api' || 'http://localhost:7004/api';
     this.logger.log(`Conectando a API en: ${this.apiBaseUrlMascotas}`);
-    this.logger.log(`Conectando a API en: ${this.apiBaseUrlAgendamiento}`);
-    this.logger.log(`Conectando a API en: ${this.apiBaseUrlIdentidad}`);
   }
 
   private readonly httpsAgent = new https.Agent({
@@ -29,14 +22,6 @@ export class MascotasService {
   });
   private getApiUrlMascota(endpoint: string): string {
     return `${this.apiBaseUrlMascotas}${endpoint}`;
-  }
-
-  private getApiUrlAgendamiento(endpoint: string): string {
-    return `${this.apiBaseUrlAgendamiento}${endpoint}`;
-  }
-
-    private getApiUrlIdentidad(endpoint: string): string {
-    return `${this.apiBaseUrlIdentidad}${endpoint}`;
   }
 
   // Obtener todas las mascotas
@@ -57,20 +42,15 @@ export class MascotasService {
     );
   }
 }
+
   // Obtener una mascota por ID
   async findOne(id: string): Promise<any> {
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(this.getApiUrlMascota(`/mascotas/${id}`)).pipe(
-          catchError((error) => {
-            this.logger.error(`Error al obtener mascota ${id}: ${error.message}`);
-            throw new HttpException(
-              error.response?.data || 'Error del servidor',
-              error.response?.status || 500,
-            );
-          }),
-        ),
-      );
+       const response = await this.httpService.axiosRef.get(
+      this.getApiUrlMascota(`/mascotas/${id}`),
+      { httpsAgent: this.httpsAgent }
+    );
+      
       return response.data;
     } catch (error) {
       this.logger.error(`Error en findOne: ${error.message}`);

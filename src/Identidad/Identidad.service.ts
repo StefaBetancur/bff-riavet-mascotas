@@ -3,73 +3,57 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { firstValueFrom, catchError } from 'rxjs';
+import * as https from 'https';
 
 @Injectable()
 export class IdentidadService {
   private readonly logger = new Logger(IdentidadService.name);
-  private readonly apiBaseUrlMascotas: string;
-  private readonly apiBaseUrlAgendamiento: string;
   private readonly apiBaseUrlIdentidad: string;
 
   constructor(
     private readonly httpService: HttpService,
     private configService: ConfigService,
   ) {
-    this.apiBaseUrlMascotas = this.configService.get<string>('API_BASE_URL_MASCOTAS') || 'http://localhost:5169/api';
-    this.apiBaseUrlAgendamiento = this.configService.get<string>('API_BASE_URL_AGENDAMIENTO') || 'http://localhost:5167/api' || 'http://localhost:7000/api';
+
     this.apiBaseUrlIdentidad = this.configService.get<string>('API_BASE_URL_IDENTIDAD') || 'http://localhost:5168/api' || 'http://localhost:7004/api';
-    this.logger.log(`Conectando a API en: ${this.apiBaseUrlMascotas}`);
-    this.logger.log(`Conectando a API en: ${this.apiBaseUrlAgendamiento}`);
+
     this.logger.log(`Conectando a API en: ${this.apiBaseUrlIdentidad}`);
   }
 
-  private getApiUrlMascota(endpoint: string): string {
-    return `${this.apiBaseUrlMascotas}${endpoint}`;
-  }
-
-  private getApiUrlAgendamiento(endpoint: string): string {
-    return `${this.apiBaseUrlAgendamiento}${endpoint}`;
-  }
+    private readonly httpsAgent = new https.Agent({
+      rejectUnauthorized: false, // Acepta certificados autofirmados SOLO en desarrollo
+    });
 
     private getApiUrlIdentidad(endpoint: string): string {
     return `${this.apiBaseUrlIdentidad}${endpoint}`;
   }
 
   // Obtener todas las usuarios
-  async findAll(): Promise<any> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.get(this.getApiUrlIdentidad('/usuarios/buscar')).pipe(
-          catchError((error) => {
-            this.logger.error(`Error al obtener usuarios: ${error.message}`);
-            throw new HttpException(
-              error.response?.data || 'Error del servidor',
-              error.response?.status || 500,
-            );
-          }),
-        ),
-      );
-      return response.data;
-    } catch (error) {
-      this.logger.error(`Error en findAll: ${error.message}`);
-      throw error;
-    }
+ async findAll(): Promise<any> {
+  try {
+    const response = await this.httpService.axiosRef.get(
+      this.getApiUrlIdentidad('/usuarios'),
+      { httpsAgent: this.httpsAgent }
+    );
+
+    return response.data;
+
+  } catch (error) {
+    this.logger.error(`Error al obtener usuarios: ${error.message}`);
+    throw new HttpException(
+      error.response?.data || 'Error del servidor',
+      error.response?.status || 500,
+    );
   }
+}
 
   // Obtener una usuarios por ID
   async findOne(id: string): Promise<any> {
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(this.getApiUrlIdentidad(`/usuarios/${id}`)).pipe(
-          catchError((error) => {
-            this.logger.error(`Error al obtener usuarios ${id}: ${error.message}`);
-            throw new HttpException(
-              error.response?.data || 'Error del servidor',
-              error.response?.status || 500,
-            );
-          }),
-        ),
-      );
+      const response = await this.httpService.axiosRef.get(
+      this.getApiUrlIdentidad(`/usuarios/${id}`),
+      { httpsAgent: this.httpsAgent }
+    );
       return response.data;
     } catch (error) {
       this.logger.error(`Error en findOne: ${error.message}`);
